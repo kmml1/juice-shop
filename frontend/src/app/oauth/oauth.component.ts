@@ -17,15 +17,24 @@ export class OAuthComponent implements OnInit {
   constructor (private readonly cookieService: CookieService, private readonly userService: UserService, private readonly router: Router, private readonly route: ActivatedRoute, private readonly ngZone: NgZone) { }
 
   ngOnInit () {
-    this.userService.oauthLogin(this.parseRedirectUrlParams().access_token).subscribe((profile: any) => {
-      const password = btoa(profile.email.split('').reverse().join(''))
-      this.userService.save({ email: profile.email, password, passwordRepeat: password }).subscribe(() => {
-        this.login(profile)
-      }, () => { this.login(profile) })
-    }, (error) => {
-      this.invalidateSession(error)
+    const params = this.parseRedirectUrlParams()
+    if (sessionStorage.getItem('state') !== params.state){
+      this.invalidateSession(Error('Login token is not valid, try again.'))
       this.ngZone.run(async () => await this.router.navigate(['/login']))
-    })
+    }
+    else {
+      this.userService.oauthLogin(this.parseRedirectUrlParams().access_token).subscribe((profile: any) => {
+        const password = btoa(profile.email.split('').reverse().join(''))
+        this.userService.save({email: profile.email, password, passwordRepeat: password}).subscribe(() => {
+          this.login(profile)
+        }, () => {
+          this.login(profile)
+        })
+      }, (error) => {
+        this.invalidateSession(error)
+        this.ngZone.run(async () => await this.router.navigate(['/login']))
+      })
+    }
   }
 
   login (profile: any) {

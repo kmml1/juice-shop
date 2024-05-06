@@ -3,18 +3,18 @@
  * SPDX-License-Identifier: MIT
  */
 
-import { CookieService } from 'ngx-cookie'
-import { WindowRefService } from '../Services/window-ref.service'
-import { Router } from '@angular/router'
-import { Component, NgZone, type OnInit } from '@angular/core'
-import { UntypedFormControl, Validators } from '@angular/forms'
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { UserService } from '../Services/user.service'
-import { faEye, faEyeSlash, faKey } from '@fortawesome/free-solid-svg-icons'
-import { faGoogle } from '@fortawesome/free-brands-svg-icons'
-import { FormSubmitService } from '../Services/form-submit.service'
-import { ConfigurationService } from '../Services/configuration.service'
-import { BasketService } from '../Services/basket.service'
+import {CookieService} from 'ngx-cookie'
+import {WindowRefService} from '../Services/window-ref.service'
+import {Router} from '@angular/router'
+import {Component, NgZone, type OnInit} from '@angular/core'
+import {UntypedFormControl, Validators} from '@angular/forms'
+import {library} from '@fortawesome/fontawesome-svg-core'
+import {UserService} from '../Services/user.service'
+import {faEye, faEyeSlash, faKey} from '@fortawesome/free-solid-svg-icons'
+import {faGoogle} from '@fortawesome/free-brands-svg-icons'
+import {FormSubmitService} from '../Services/form-submit.service'
+import {ConfigurationService} from '../Services/configuration.service'
+import {BasketService} from '../Services/basket.service'
 
 library.add(faKey, faEye, faEyeSlash, faGoogle)
 
@@ -38,9 +38,11 @@ export class LoginComponent implements OnInit {
   public clientId = '1005568560502-6hm16lef8oh46hr2d98vf2ohlnj4nfhq.apps.googleusercontent.com'
   public oauthUnavailable: boolean = true
   public redirectUri: string = ''
-  constructor (private readonly configurationService: ConfigurationService, private readonly userService: UserService, private readonly windowRefService: WindowRefService, private readonly cookieService: CookieService, private readonly router: Router, private readonly formSubmitService: FormSubmitService, private readonly basketService: BasketService, private readonly ngZone: NgZone) { }
 
-  ngOnInit () {
+  constructor(private readonly configurationService: ConfigurationService, private readonly userService: UserService, private readonly windowRefService: WindowRefService, private readonly cookieService: CookieService, private readonly router: Router, private readonly formSubmitService: FormSubmitService, private readonly basketService: BasketService, private readonly ngZone: NgZone) {
+  }
+
+  ngOnInit() {
     const email = localStorage.getItem('email')
     if (email) {
       this.user = {}
@@ -64,12 +66,16 @@ export class LoginComponent implements OnInit {
           console.log(this.redirectUri + ' is not an authorized redirect URI for this application.')
         }
       }
-    }, (err) => { console.log(err) })
+    }, (err) => {
+      console.log(err)
+    })
 
-    this.formSubmitService.attachEnterKeyHandler('login-form', 'loginButton', () => { this.login() })
+    this.formSubmitService.attachEnterKeyHandler('login-form', 'loginButton', () => {
+      this.login()
+    })
   }
 
-  login () {
+  login() {
     this.user = {}
     this.user.email = this.emailControl.value
     this.user.password = this.passwordControl.value
@@ -77,12 +83,12 @@ export class LoginComponent implements OnInit {
       localStorage.setItem('token', authentication.token)
       const expires = new Date()
       expires.setHours(expires.getHours() + 8)
-      this.cookieService.put('token', authentication.token, { expires })
+      this.cookieService.put('token', authentication.token, {expires})
       sessionStorage.setItem('bid', authentication.bid)
       this.basketService.updateNumberOfCartItems()
       this.userService.isLoggedIn.next(true)
       this.ngZone.run(async () => await this.router.navigate(['/search']))
-    }, ({ error }) => {
+    }, ({error}) => {
       if (error.status && error.data && error.status === 'totp_token_required') {
         localStorage.setItem('totp_tmp_token', error.data.tmpToken)
         this.ngZone.run(async () => await this.router.navigate(['/2fa/enter']))
@@ -104,7 +110,10 @@ export class LoginComponent implements OnInit {
     }
   }
 
-  googleLogin () {
-    this.windowRefService.nativeWindow.location.replace(`${oauthProviderUrl}?client_id=${this.clientId}&response_type=token&scope=email&redirect_uri=${this.redirectUri}`)
+  googleLogin() {
+    const state = str(Date.now()) + makeRandomString(16).toLowerCase()
+    sessionStorage.setItem('state', state)
+    this.windowRefService.nativeWindow.location.replace(
+      `${oauthProviderUrl}?client_id=${this.clientId}&response_type=token&scope=email&redirect_uri=${this.redirectUri}`)
   }
 }
