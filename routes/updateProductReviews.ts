@@ -13,6 +13,10 @@ const security = require('../lib/insecurity')
 // vuln-code-snippet start noSqlReviewsChallenge forgedReviewChallenge
 module.exports = function productReviews () {
   return (req: Request, res: Response, next: NextFunction) => {
+    const validator = /^[a-zA-Z0-9\s]*$/
+    if(!validator.test(req.body)){
+      return res.status(400).json({error: 'ERROR in body'})
+    }
     const user = security.authenticatedUsers.from(req) // vuln-code-snippet vuln-line forgedReviewChallenge
     db.reviews.update( // vuln-code-snippet neutral-line forgedReviewChallenge
       { _id: req.body.id }, // vuln-code-snippet vuln-line noSqlReviewsChallenge forgedReviewChallenge

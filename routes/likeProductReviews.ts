@@ -14,6 +14,10 @@ const security = require('../lib/insecurity')
 module.exports = function productReviews () {
   return (req: Request, res: Response, next: NextFunction) => {
     const id = req.body.id
+    const validator = /^[a-zA-Z0-9\s]*$/
+    if(!validator.test(req.body)){
+      return res.status(400).json({error: 'ERROR in body'})
+    }
     const user = security.authenticatedUsers.from(req)
     db.reviews.findOne({ _id: id }).then((review: Review) => {
       if (!review) {
